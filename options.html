@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Walmart SQL Helper Settings</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <div>
+          <h1>Walmart SQL Helper Settings</h1>
+          <div id="version" class="meta"></div>
+        </div>
+      </header>
+
+      <section class="panel">
+        <div id="status" class="status">Load or save your server settings here.</div>
+
+        <div class="field">
+          <label for="serverBaseUrl">Server Base URL</label>
+          <input id="serverBaseUrl" type="url" placeholder="http://voncloft.shopping.com">
+        </div>
+
+        <div class="field">
+          <label for="priceEndpoint">Price Update Endpoint</label>
+          <input id="priceEndpoint" type="text" placeholder="/ajax/edit_price.php">
+        </div>
+
+        <label class="checkbox">
+          <input id="autoSubmit" type="checkbox">
+          <span>When I click Save Current Item, also POST `id` and `updated_value` to the server</span>
+        </label>
+
+        <div class="actions">
+          <button id="saveSettings" type="button">Save Settings</button>
+          <button id="testSettings" type="button" class="secondary">Test Endpoint</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="options.js"></script>
+  </body>
+</html>

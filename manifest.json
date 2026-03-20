@@ -1,0 +1,42 @@
+{
+  "manifest_version": 2,
+  "name": "Walmart SQL Helper",
+  "version": "1.8",
+  "description": "Collect Walmart prices from your normal Firefox session and build SQL UPDATE statements.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "downloads",
+    "clipboardWrite",
+    "http://*/*",
+    "https://*/*",
+    "https://www.walmart.com/*",
+    "http://voncloft.shopping.com/*"
+  ],
+  "browser_action": {
+    "default_title": "Walmart SQL Helper",
+    "default_popup": "popup.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://www.walmart.com/*",
+        "http://voncloft.shopping.com/*"
+      ],
+      "js": [
+        "content-script.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "applications": {
+    "gecko": {
+      "id": "walmart-sql-helper@local"
+    }
+  }
+}

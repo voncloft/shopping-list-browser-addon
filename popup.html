@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Walmart SQL Helper</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div>
+          <h1>Walmart SQL Helper</h1>
+          <div id="version" class="version"></div>
+          <div id="serverSummary" class="version"></div>
+        </div>
+        <div class="actions compact">
+          <button id="settings" type="button" class="secondary">Settings</button>
+          <button id="refresh" type="button" class="secondary">Refresh</button>
+        </div>
+      </header>
+
+      <section class="panel">
+        <div id="status" class="status">Checking current tab...</div>
+        <div class="field">
+          <label for="title">Product</label>
+          <textarea id="title" rows="3" readonly></textarea>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="price">Price</label>
+            <input id="price" type="text" readonly>
+          </div>
+          <div class="field">
+            <label for="itemId">Walmart Item ID</label>
+            <input id="itemId" type="text" readonly>
+          </div>
+        </div>
+        <div class="field">
+          <label for="dbId">Database ID</label>
+          <input id="dbId" type="number" min="1" placeholder="Enter items.ID">
+        </div>
+        <div class="actions">
+          <button id="saveCurrent" type="button">Save Current Item</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
