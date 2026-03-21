@@ -6,7 +6,7 @@
     : (typeof chrome !== "undefined" ? chrome : null);
   const CLICK_MAP_KEY = "clickedDbIdsByItemId";
   const SETTINGS_KEY = "serverSettings";
-  const PANEL_ID = "walmart-sql-helper-panel";
+  const PANEL_ID = "walmart-price-updater-panel";
   let panelElements = null;
   let currentUrl = location.href;
 
@@ -187,6 +187,24 @@
     panelElements.button.textContent = isBusy ? "Updating..." : "Update Server";
   }
 
+  function setPanelOpen(isOpen) {
+    if (!panelElements) {
+      return;
+    }
+
+    panelElements.isOpen = Boolean(isOpen);
+    panelElements.panel.style.display = panelElements.isOpen ? "block" : "none";
+    panelElements.launcher.style.display = panelElements.isOpen ? "none" : "block";
+  }
+
+  function setLauncherLabel(text) {
+    if (!panelElements) {
+      return;
+    }
+
+    panelElements.launcher.textContent = text;
+  }
+
   function createPanel() {
     if (location.hostname !== "www.walmart.com") {
       return null;
@@ -197,11 +215,29 @@
       return panelElements;
     }
 
+    const launcher = document.createElement("button");
+    launcher.type = "button";
+    launcher.textContent = "Edit Price";
+    launcher.style.position = "fixed";
+    launcher.style.left = "18px";
+    launcher.style.bottom = "68px";
+    launcher.style.zIndex = "2147483647";
+    launcher.style.border = "0";
+    launcher.style.borderRadius = "999px";
+    launcher.style.padding = "10px 14px";
+    launcher.style.background = "#0f766e";
+    launcher.style.color = "#ffffff";
+    launcher.style.fontFamily = "Arial, sans-serif";
+    launcher.style.fontSize = "13px";
+    launcher.style.fontWeight = "700";
+    launcher.style.boxShadow = "0 10px 28px rgba(15, 23, 42, 0.18)";
+    launcher.style.cursor = "pointer";
+
     const panel = document.createElement("div");
     panel.id = PANEL_ID;
     panel.style.position = "fixed";
-    panel.style.right = "18px";
-    panel.style.bottom = "18px";
+    panel.style.left = "18px";
+    panel.style.bottom = "68px";
     panel.style.zIndex = "2147483647";
     panel.style.width = "260px";
     panel.style.padding = "14px";
@@ -211,12 +247,34 @@
     panel.style.boxShadow = "0 16px 40px rgba(15, 23, 42, 0.18)";
     panel.style.fontFamily = "Arial, sans-serif";
     panel.style.color = "#1f2937";
+    panel.style.display = "none";
+
+    const header = document.createElement("div");
+    header.style.display = "flex";
+    header.style.alignItems = "center";
+    header.style.justifyContent = "space-between";
+    header.style.gap = "10px";
+    header.style.marginBottom = "10px";
 
     const title = document.createElement("div");
-    title.textContent = "Walmart SQL Helper";
+    title.textContent = "walmart_price_updater";
     title.style.fontSize = "14px";
     title.style.fontWeight = "700";
-    title.style.marginBottom = "10px";
+    title.style.flex = "1";
+    title.style.minWidth = "0";
+    title.style.wordBreak = "break-word";
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.textContent = "Close";
+    close.style.border = "1px solid #cbd5e1";
+    close.style.borderRadius = "10px";
+    close.style.padding = "6px 10px";
+    close.style.background = "#ffffff";
+    close.style.color = "#334155";
+    close.style.fontWeight = "700";
+    close.style.cursor = "pointer";
+    close.style.flexShrink = "0";
 
     const meta = document.createElement("div");
     meta.style.fontSize = "12px";
@@ -261,18 +319,34 @@
     refresh.style.cursor = "pointer";
 
     actions.append(button, refresh);
-    panel.append(title, meta, status, actions);
+    header.append(title, close);
+    panel.append(header, meta, status, actions);
+    document.documentElement.appendChild(launcher);
     document.documentElement.appendChild(panel);
 
     panelElements = {
+      launcher,
       panel,
       priceLine,
       dbIdLine,
       itemIdLine,
       status,
       button,
-      refresh
+      refresh,
+      close,
+      isOpen: false
     };
+
+    launcher.addEventListener("click", () => {
+      setPanelOpen(true);
+      refreshInjectedPanel().catch((error) => {
+        setPanelStatus(error.message || String(error), "bad");
+      });
+    });
+
+    close.addEventListener("click", () => {
+      setPanelOpen(false);
+    });
 
     return panelElements;
   }
@@ -506,6 +580,11 @@
         ? ` affected=${response.affected_rows}.`
         : "";
       setPanelStatus(`Updated ID ${dbId} to $${data.price}.${affectedRows}`, "good");
+      setLauncherLabel("Updated");
+      setPanelOpen(false);
+      window.setTimeout(() => {
+        setLauncherLabel("Edit Price");
+      }, 1800);
     } catch (error) {
       setPanelStatus(error.message || String(error), "bad");
     } finally {
@@ -533,19 +612,17 @@
       });
     });
 
-    refreshInjectedPanel().catch((error) => {
-      setPanelStatus(error.message || String(error), "bad");
-    });
-
     window.setInterval(() => {
       if (location.href === currentUrl) {
         return;
       }
 
       currentUrl = location.href;
-      refreshInjectedPanel().catch((error) => {
-        setPanelStatus(error.message || String(error), "bad");
-      });
+      if (panelElements.isOpen) {
+        refreshInjectedPanel().catch((error) => {
+          setPanelStatus(error.message || String(error), "bad");
+        });
+      }
     }, 1500);
   }
 

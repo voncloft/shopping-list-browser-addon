@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Walmart SQL Helper",
+  "name": "walmart_price_updater",
   "version": "1.8",
   "description": "Collect Walmart prices from your normal Firefox session and build SQL UPDATE statements.",
   "permissions": [
@@ -15,7 +15,7 @@
     "http://voncloft.shopping.com/*"
   ],
   "browser_action": {
-    "default_title": "Walmart SQL Helper",
+    "default_title": "walmart_price_updater",
     "default_popup": "popup.html"
   },
   "options_ui": {
@@ -36,7 +36,7 @@
   ],
   "applications": {
     "gecko": {
-      "id": "walmart-sql-helper@local"
+      "id": "walmart_price_updater@local"
     }
   }
 }

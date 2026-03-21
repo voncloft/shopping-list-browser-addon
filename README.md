@@ -1,4 +1,4 @@
-# Walmart SQL Helper
+# walmart_price_updater
 
 Firefox WebExtension for Walmart product pages. It reads the current page price from your normal browser session and builds:
 
@@ -10,7 +10,7 @@ UPDATE items SET price=8.42 WHERE ID=440;
 
 1. Open `about:debugging#/runtime/this-firefox`
 2. Click `Load Temporary Add-on...`
-3. Select [`manifest.json`](/home/von/walmart_sql_helper_extension/manifest.json)
+3. Select [`manifest.json`](/home/von/walmart_price_updater/manifest.json)
 
 If the addon is already loaded, remove it and load it again to pick up new changes.
 The popup now shows the addon version so you can confirm Firefox is using the updated copy.
@@ -35,9 +35,9 @@ The popup now shows the addon version so you can confirm Firefox is using the up
 
 ## Files
 
-- [`manifest.json`](/home/von/walmart_sql_helper_extension/manifest.json)
-- [`content-script.js`](/home/von/walmart_sql_helper_extension/content-script.js)
-- [`popup.html`](/home/von/walmart_sql_helper_extension/popup.html)
-- [`popup.css`](/home/von/walmart_sql_helper_extension/popup.css)
-- [`popup.js`](/home/von/walmart_sql_helper_extension/popup.js)
+- [`manifest.json`](/home/von/walmart_price_updater/manifest.json)
+- [`content-script.js`](/home/von/walmart_price_updater/content-script.js)
+- [`popup.html`](/home/von/walmart_price_updater/popup.html)
+- [`popup.css`](/home/von/walmart_price_updater/popup.css)
+- [`popup.js`](/home/von/walmart_price_updater/popup.js)
 # shopping-list-browser-addon
