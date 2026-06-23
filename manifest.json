@@ -18,6 +18,11 @@
     "default_title": "walmart_price_updater",
     "default_popup": "popup.html"
   },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true

@@ -5,7 +5,6 @@
     ? browser
     : (typeof chrome !== "undefined" ? chrome : null);
   const CLICK_MAP_KEY = "clickedDbIdsByItemId";
-  const SETTINGS_KEY = "serverSettings";
   const PANEL_ID = "walmart-price-updater-panel";
   let panelElements = null;
   let currentUrl = location.href;
@@ -113,58 +112,25 @@
     );
   }
 
-  function getDefaultSettings() {
-    return {
-      serverBaseUrl: "http://voncloft.shopping.com",
-      priceEndpoint: "/ajax/edit_price.php",
-      autoSubmit: true
-    };
-  }
-
-  function buildServerUrl(settings) {
-    if (!settings.serverBaseUrl || !settings.priceEndpoint) {
-      throw new Error("Server URL and endpoint are required.");
-    }
-
-    return new URL(settings.priceEndpoint, settings.serverBaseUrl).toString();
-  }
-
-  async function getServerSettings() {
-    const stored = await browserApi.storage.local.get({ [SETTINGS_KEY]: getDefaultSettings() });
-    return stored[SETTINGS_KEY];
-  }
-
   async function submitServerUpdate(dbId, price) {
-    const settings = await getServerSettings();
-    const targetUrl = buildServerUrl(settings);
-    const body = new URLSearchParams();
-    body.set("id", String(dbId));
-    body.set("updated_value", String(price));
-
-    const response = await fetch(targetUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-      },
-      body: body.toString(),
-      credentials: "include"
+    const response = await browserApi.runtime.sendMessage({
+      type: "submitServerUpdate",
+      dbId: String(dbId),
+      price: String(price),
+      context: {
+        source: "content-script",
+        pageUrl: location.href,
+        itemId: extractItemIdFromUrl(location.href),
+        dbId: String(dbId),
+        price: String(price)
+      }
     });
 
-    const responseText = await response.text();
-    if (!response.ok) {
-      throw new Error(`Server update failed (${response.status}): ${responseText.slice(0, 120)}`);
+    if (!response || response.ok !== true) {
+      throw new Error(response?.error || "Server update failed.");
     }
 
-    if (!responseText.trim()) {
-      return { ok: true };
-    }
-
-    const json = JSON.parse(responseText);
-    if (json && json.ok === false) {
-      throw new Error(json.error || "Server returned ok=false");
-    }
-
-    return json;
+    return response.data;
   }
 
   function setPanelStatus(message, tone) {

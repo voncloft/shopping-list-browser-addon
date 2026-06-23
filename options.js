@@ -12,7 +12,9 @@ const elements = {
   priceEndpoint: document.getElementById("priceEndpoint"),
   autoSubmit: document.getElementById("autoSubmit"),
   saveSettings: document.getElementById("saveSettings"),
-  testSettings: document.getElementById("testSettings")
+  testSettings: document.getElementById("testSettings"),
+  downloadLogs: document.getElementById("downloadLogs"),
+  clearLogs: document.getElementById("clearLogs")
 };
 
 if (!browserApi) {
@@ -59,6 +61,14 @@ function buildServerUrl(settings) {
   return new URL(settings.priceEndpoint, settings.serverBaseUrl).toString();
 }
 
+async function sendRuntimeMessage(message) {
+  const response = await browserApi.runtime.sendMessage(message);
+  if (!response || response.ok !== true) {
+    throw new Error(response?.error || "Background request failed.");
+  }
+  return response;
+}
+
 async function saveSettings() {
   const settings = readForm();
   buildServerUrl(settings);
@@ -68,40 +78,51 @@ async function saveSettings() {
 
 async function testSettings() {
   const settings = readForm();
-  const url = buildServerUrl(settings);
-  const body = new URLSearchParams();
-  body.set("id", "0");
-  body.set("updated_value", "0");
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-    },
-    body: body.toString(),
-    credentials: "include"
+  buildServerUrl(settings);
+  const response = await sendRuntimeMessage({
+    type: "testServerSettings",
+    settings,
+    context: {
+      source: "options"
+    }
   });
+  setStatus(`Endpoint reachable: ${response.url}`, "good");
+}
 
-  const text = await response.text();
-  let parsed = null;
+async function downloadLogs() {
+  const response = await sendRuntimeMessage({
+    type: "getDebugLogExport",
+    context: {
+      source: "options"
+    }
+  });
+  const blob = new Blob([response.text], { type: "text/plain;charset=utf-8" });
+  const objectUrl = URL.createObjectURL(blob);
 
   try {
-    parsed = JSON.parse(text);
-  } catch (error) {
-    parsed = null;
+    await browserApi.downloads.download({
+      url: objectUrl,
+      filename: response.filename,
+      saveAs: true,
+      conflictAction: "uniquify"
+    });
+  } finally {
+    window.setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+    }, 1000);
   }
 
-  if (response.ok && (!parsed || parsed.ok !== false)) {
-    setStatus(`Endpoint reachable: ${url}`, "good");
-    return;
-  }
+  setStatus("Downloaded debug log.", "good");
+}
 
-  if (parsed && parsed.error === "Invalid id") {
-    setStatus(`Endpoint reachable: ${url}`, "good");
-    return;
-  }
-
-  throw new Error(`Server responded ${response.status}: ${text.slice(0, 180)}`);
+async function clearLogs() {
+  await sendRuntimeMessage({
+    type: "clearDebugLogs",
+    context: {
+      source: "options"
+    }
+  });
+  setStatus("Cleared debug logs.", "good");
 }
 
 async function init() {
@@ -117,6 +138,18 @@ elements.saveSettings.addEventListener("click", () => {
 
 elements.testSettings.addEventListener("click", () => {
   testSettings().catch((error) => {
+    setStatus(error.message || String(error), "bad");
+  });
+});
+
+elements.downloadLogs.addEventListener("click", () => {
+  downloadLogs().catch((error) => {
+    setStatus(error.message || String(error), "bad");
+  });
+});
+
+elements.clearLogs.addEventListener("click", () => {
+  clearLogs().catch((error) => {
     setStatus(error.message || String(error), "bad");
   });
 });

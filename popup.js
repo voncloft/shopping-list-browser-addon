@@ -68,46 +68,26 @@ function summarizeServer(settings) {
   return `${mode}: ${url}`;
 }
 
-function encodeBasicAuth(username, password) {
-  return btoa(`${username}:${password}`);
-}
-
-async function submitServerUpdate(dbId, price, settings) {
-  const targetUrl = buildServerUrl(settings);
-  if (!targetUrl) {
-    throw new Error("Server URL or endpoint is not configured.");
-  }
-
-  const body = new URLSearchParams();
-  body.set("id", dbId);
-  body.set("updated_value", price);
-
-  const response = await fetch(targetUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-    },
-    body: body.toString(),
-    credentials: "include"
+async function requestServerUpdate(dbId, price, settings) {
+  const response = await browserApi.runtime.sendMessage({
+    type: "submitServerUpdate",
+    dbId,
+    price,
+    settings,
+    context: {
+      source: "popup",
+      pageUrl: currentPageData?.url || null,
+      itemId: currentPageData?.itemId || null,
+      dbId: String(dbId),
+      price: String(price)
+    }
   });
 
-  const responseText = await response.text();
-  if (!response.ok) {
-    throw new Error(`Server update failed (${response.status}): ${responseText.slice(0, 120)}`);
+  if (!response || response.ok !== true) {
+    throw new Error(response?.error || "Server update failed.");
   }
 
-  try {
-    const json = JSON.parse(responseText);
-    if (json && json.ok === false) {
-      throw new Error(json.error || "Server returned ok=false");
-    }
-    return json;
-  } catch (error) {
-    if (responseText.trim() === "") {
-      return { ok: true };
-    }
-    throw error;
-  }
+  return response.data;
 }
 
 async function renderServerSummary() {
@@ -205,7 +185,7 @@ async function saveCurrentItem() {
   let serverMessage = "";
   if (settings.autoSubmit) {
     try {
-      const serverResponse = await submitServerUpdate(dbId, currentPageData.price, settings);
+      const serverResponse = await requestServerUpdate(dbId, currentPageData.price, settings);
       const affectedRows = serverResponse && typeof serverResponse.affected_rows !== "undefined"
         ? ` affected=${serverResponse.affected_rows}.`
         : "";
